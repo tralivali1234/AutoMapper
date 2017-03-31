@@ -11,7 +11,7 @@
     <RootNamespace>AutoMapper.UnitTests</RootNamespace>
     <AssemblyName>AutoMapper.UnitTests.Net4</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SignAssembly>false</SignAssembly>
     <AssemblyOriginatorKeyFile>
@@ -44,7 +44,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\NET4\Debug\</OutputPath>
+    <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>TRACE;DEBUG;NET4</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -54,7 +54,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\NET4\Release\</OutputPath>
+    <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE;NET4</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -62,8 +62,8 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Fixie, Version=1.0.0.29, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fixie.1.0.0.29\lib\net45\Fixie.dll</HintPath>
+    <Reference Include="Fixie, Version=1.0.0.41, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Fixie.1.0.0.41\lib\net45\Fixie.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
@@ -79,25 +79,173 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\AutoMapper\Internal\TypeExtensions.cs">
+    <Compile Include="..\AutoMapper\Mappers\Internal\ElementTypeHelper.cs">
+      <Link>TypeHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\AutoMapper\TypeExtensions.cs">
       <Link>TypeExtensions.cs</Link>
     </Compile>
+    <Compile Include="..\AutoMapper\Configuration\PrimitiveExtensions.cs">
+      <Link>PrimitiveExtensions.cs</Link>
+    </Compile>
     <Compile Include="ArraysAndLists.cs" />
+    <Compile Include="AssemblyScanning.cs" />
     <Compile Include="AssertionExtensions.cs" />
+    <Compile Include="BasicFlattening.cs" />
+    <Compile Include="Bug\CannotProjectStringToNullableEnum.cs" />
+    <Compile Include="Bug\OneSourceWithMultipleDestinationsAndPreserveReferences.cs" />
+    <Compile Include="Bug\ConventionCreateMapsWithCircularReference.cs" />
+    <Compile Include="Bug\ConvertMapperThreading.cs" />
+    <Compile Include="Bug\DeepCloningBug.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\BaseEntity.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\BaseEntityDTO.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\MapAtRuntimeWithCollections.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\Entity1.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\Entity10.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\Entity11.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\Entity12.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\Entity13.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\Entity14.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\Entity15.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\Entity16.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\Entity17.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\Entity18.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\Entity19.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\Entity2.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\Entity20.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\Entity21.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\Entity22.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\Entity23.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\Entity24.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\Entity25.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\Entity26.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\Entity3.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\Entity4.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\Entity5.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\Entity6.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\Entity7.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\Entity8.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\Entity9.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\EntityDTO1.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\EntityDTO10.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\EntityDTO11.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\EntityDTO12.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\EntityDTO13.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\EntityDTO14.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\EntityDTO15.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\EntityDTO16.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\EntityDTO17.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\EntityDTO18.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\EntityDTO19.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\EntityDTO2.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\EntityDTO20.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\EntityDTO21.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\EntityDTO22.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\EntityDTO23.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\EntityDTO24.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\EntityDTO25.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\EntityDTO26.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\EntityDTO3.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\EntityDTO4.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\EntityDTO5.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\EntityDTO6.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\EntityDTO7.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\EntityDTO8.cs" />
+    <Compile Include="Bug\MapAtRuntimeWithCollections\EntityDTO9.cs" />
+    <Compile Include="Bug\MapAtRuntime\BaseEntity.cs" />
+    <Compile Include="Bug\MapAtRuntime\BaseEntityDTO.cs" />
+    <Compile Include="Bug\MapAtRuntime\MapAtRuntime.cs" />
+    <Compile Include="Bug\MapAtRuntime\Entity1.cs" />
+    <Compile Include="Bug\MapAtRuntime\Entity10.cs" />
+    <Compile Include="Bug\MapAtRuntime\Entity11.cs" />
+    <Compile Include="Bug\MapAtRuntime\Entity12.cs" />
+    <Compile Include="Bug\MapAtRuntime\Entity13.cs" />
+    <Compile Include="Bug\MapAtRuntime\Entity14.cs" />
+    <Compile Include="Bug\MapAtRuntime\Entity15.cs" />
+    <Compile Include="Bug\MapAtRuntime\Entity16.cs" />
+    <Compile Include="Bug\MapAtRuntime\Entity17.cs" />
+    <Compile Include="Bug\MapAtRuntime\Entity18.cs" />
+    <Compile Include="Bug\MapAtRuntime\Entity19.cs" />
+    <Compile Include="Bug\MapAtRuntime\Entity2.cs" />
+    <Compile Include="Bug\MapAtRuntime\Entity20.cs" />
+    <Compile Include="Bug\MapAtRuntime\Entity21.cs" />
+    <Compile Include="Bug\MapAtRuntime\Entity22.cs" />
+    <Compile Include="Bug\MapAtRuntime\Entity23.cs" />
+    <Compile Include="Bug\MapAtRuntime\Entity24.cs" />
+    <Compile Include="Bug\MapAtRuntime\Entity25.cs" />
+    <Compile Include="Bug\MapAtRuntime\Entity26.cs" />
+    <Compile Include="Bug\MapAtRuntime\Entity3.cs" />
+    <Compile Include="Bug\MapAtRuntime\Entity4.cs" />
+    <Compile Include="Bug\MapAtRuntime\Entity5.cs" />
+    <Compile Include="Bug\MapAtRuntime\Entity6.cs" />
+    <Compile Include="Bug\MapAtRuntime\Entity7.cs" />
+    <Compile Include="Bug\MapAtRuntime\Entity8.cs" />
+    <Compile Include="Bug\MapAtRuntime\Entity9.cs" />
+    <Compile Include="Bug\MapAtRuntime\EntityDTO1.cs" />
+    <Compile Include="Bug\MapAtRuntime\EntityDTO10.cs" />
+    <Compile Include="Bug\MapAtRuntime\EntityDTO11.cs" />
+    <Compile Include="Bug\MapAtRuntime\EntityDTO12.cs" />
+    <Compile Include="Bug\MapAtRuntime\EntityDTO13.cs" />
+    <Compile Include="Bug\MapAtRuntime\EntityDTO14.cs" />
+    <Compile Include="Bug\MapAtRuntime\EntityDTO15.cs" />
+    <Compile Include="Bug\MapAtRuntime\EntityDTO16.cs" />
+    <Compile Include="Bug\MapAtRuntime\EntityDTO17.cs" />
+    <Compile Include="Bug\MapAtRuntime\EntityDTO18.cs" />
+    <Compile Include="Bug\MapAtRuntime\EntityDTO19.cs" />
+    <Compile Include="Bug\MapAtRuntime\EntityDTO2.cs" />
+    <Compile Include="Bug\MapAtRuntime\EntityDTO20.cs" />
+    <Compile Include="Bug\MapAtRuntime\EntityDTO21.cs" />
+    <Compile Include="Bug\MapAtRuntime\EntityDTO22.cs" />
+    <Compile Include="Bug\MapAtRuntime\EntityDTO23.cs" />
+    <Compile Include="Bug\MapAtRuntime\EntityDTO24.cs" />
+    <Compile Include="Bug\MapAtRuntime\EntityDTO25.cs" />
+    <Compile Include="Bug\MapAtRuntime\EntityDTO26.cs" />
+    <Compile Include="Bug\MapAtRuntime\EntityDTO3.cs" />
+    <Compile Include="Bug\MapAtRuntime\EntityDTO4.cs" />
+    <Compile Include="Bug\MapAtRuntime\EntityDTO5.cs" />
+    <Compile Include="Bug\MapAtRuntime\EntityDTO6.cs" />
+    <Compile Include="Bug\MapAtRuntime\EntityDTO7.cs" />
+    <Compile Include="Bug\MapAtRuntime\EntityDTO8.cs" />
+    <Compile Include="Bug\MapAtRuntime\EntityDTO9.cs" />
+    <Compile Include="Bug\ExpressionMappingPropertyFromBaseClass.cs" />
+    <Compile Include="Bug\ForAllMembersAndDoNotUseDestinationValue.cs" />
+    <Compile Include="Bug\InterfaceMultipleInheritance.cs" />
     <Compile Include="Bug\AfterMapNestedObjects.cs" />
     <Compile Include="Bug\AutoMapperInheritanceProblemDemo.cs" />
     <Compile Include="AutoMapperSpecBase.cs" />
     <Compile Include="AutoMapperTester.cs" />
     <Compile Include="BeforeAfterMapping.cs" />
     <Compile Include="BidirectionalRelationships.cs" />
-    <Compile Include="Bug\AllMembersNullSubstitute.cs" />
     <Compile Include="Bug\AllowNullDestinationValuesBugs.cs" />
     <Compile Include="Bug\AssignableCollectionBug.cs" />
     <Compile Include="Bug\CannotConvertEnumToNullable.cs" />
     <Compile Include="Bug\BaseMapWithIncludesAndUnincludedMappings.cs" />
     <Compile Include="Bug\CaseSensitivityBug.cs" />
     <Compile Include="Bug\CollectionBaseClassGetConvention.cs" />
-    <Compile Include="Bug\ForAllMaps.cs" />
+    <Compile Include="Bug\InitializeNRE.cs" />
+    <Compile Include="Bug\GuidTryExpression.cs" />
+    <Compile Include="Bug\MapFromClosureBug.cs" />
+    <Compile Include="Bug\NullToString.cs" />
+    <Compile Include="Bug\NullSubstituteInnerClass.cs" />
+    <Compile Include="Bug\MapExpandoObjectProperty.cs" />
+    <Compile Include="Bug\PreserveReferencesSameDestination.cs" />
+    <Compile Include="BuildExecutionPlan.cs" />
+    <Compile Include="ConfigCompilation.cs" />
+    <Compile Include="CustomCollectionTester.cs" />
+    <Compile Include="ForAllMaps.cs" />
+    <Compile Include="Bug\AllowNullCollectionsAssignableArray.cs" />
+    <Compile Include="Bug\AssertConfigurationIsValidNullables.cs" />
+    <Compile Include="Bug\IncludeBaseInheritance.cs" />
+    <Compile Include="Bug\IncludeInheritance.cs" />
+    <Compile Include="Bug\DuplicateExtensionMethods.cs" />
+    <Compile Include="Bug\CustomConverters.cs" />
+    <Compile Include="Bug\MissingMapping.cs" />
+    <Compile Include="Bug\NullableIntToNullableDecimal.cs" />
+    <Compile Include="Bug\UseDestinationValue.cs" />
+    <Compile Include="Bug\StructMapping.cs" />
+    <Compile Include="Bug\MapOverloadsWithDynamic.cs" />
+    <Compile Include="Bug\NullSubstituteType.cs" />
+    <Compile Include="Bug\NullableResolveUsing.cs" />
     <Compile Include="Bug\NullableDateTime.cs" />
     <Compile Include="Bug\ProjectUsingTheQueriedEntity.cs" />
     <Compile Include="Bug\ReverseMapReplaceMemberName.cs" />
@@ -169,16 +317,20 @@
     <Compile Include="ConvensionTest.cs" />
     <Compile Include="ConversionOperators.cs" />
     <Compile Include="CustomMapping.cs" />
+    <Compile Include="ForAllMembers.cs" />
+    <Compile Include="ForAllOtherMembers.cs" />
     <Compile Include="EnumToNullableEnum.cs" />
+    <Compile Include="ExplicitMapperCreation.cs" />
     <Compile Include="ExpressionBridge.cs" />
     <Compile Include="ExpressionConversion.cs" />
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="IgnoreAllTests.cs" />
-    <Compile Include="IMappingExpression\NonGenericAllMembersNullSubstitute.cs" />
     <Compile Include="IMappingExpression\ForCtorParam.cs" />
     <Compile Include="IMappingExpression\NonGenericConstructorTests.cs" />
+    <Compile Include="IMappingExpression\NonGenericResolveUsing.cs" />
     <Compile Include="IMappingExpression\NonGenericReverseMapping.cs" />
     <Compile Include="IMappingExpression\NonGenericProjectEnumTest.cs" />
+    <Compile Include="Internal\CreateProxyThreading.cs" />
     <Compile Include="Internal\DelegateFactoryTests.cs" />
     <Compile Include="Dictionaries.cs" />
     <Compile Include="DynamicMapping.cs" />
@@ -189,10 +341,12 @@
     <Compile Include="General.cs" />
     <Compile Include="Indexers.cs" />
     <Compile Include="InterfaceMapping.cs" />
+    <Compile Include="Internal\NullConstructorParameter.cs" />
     <Compile Include="Internal\PrimitiveExtensionsTester.cs" />
-    <Compile Include="Internal\RegisterFactory.cs" />
+    <Compile Include="Internal\QueryMapperHelperTests.cs" />
     <Compile Include="Internationalization.cs" />
     <Compile Include="Bug\LazyCollectionMapping.cs" />
+    <Compile Include="Mappers\ConvertMapperTests.cs" />
     <Compile Include="Mappers\CustomMapperTests.cs" />
     <Compile Include="Mappers\StringDictionaryMapperTests.cs" />
     <Compile Include="Mappers\DynamicMapperTests.cs" />
@@ -202,17 +356,21 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="MappingExceptions.cs" />
+    <Compile Include="MappingInheritance\ApplyIncludeBaseRecursively.cs" />
     <Compile Include="MappingInheritance\ConventionMappedCollectionShouldMapBaseTypes.cs" />
+    <Compile Include="MappingInheritance\IgnoreShouldBeInherited.cs" />
     <Compile Include="MappingInheritance\IgnoreShouldBeInheritedIfConventionCannotMap.cs" />
+    <Compile Include="MappingInheritance\IncludeBaseShouldNotCreateMaps.cs" />
+    <Compile Include="MappingInheritance\MapToBaseClass.cs" />
+    <Compile Include="MappingInheritance\GenericsAndInterfaces.cs" />
     <Compile Include="MappingInheritance\IncludeBaseBug.cs" />
     <Compile Include="MappingInheritance\IncludedBaseMappingShouldInheritBaseMappings.cs" />
     <Compile Include="MappingInheritance\IncludedMappingShouldInheritBaseMappings.cs" />
     <Compile Include="MappingInheritance\InheritanceWithoutIncludeShouldWork.cs" />
-    <Compile Include="MappingInheritance\InheritedIgnoreShouldBeOverridenByConventionMapping.cs" />
     <Compile Include="MappingInheritance\MultipleInheritedBaseMappingsOfSameTypeFails.cs" />
     <Compile Include="MappingInheritance\OverrideIgnore.cs" />
     <Compile Include="MappingInheritance\PropertyOnMappingShouldResolveMostSpecificType.cs" />
-    <Compile Include="MappingInheritance\ProxyClassWithInheritance.cs" />
+    <Compile Include="MappingInheritance\ReverseMapWithInclude.cs" />
     <Compile Include="MappingInheritance\ShouldInheritBeforeAndAfterMap.cs" />
     <Compile Include="MappingInheritance\ShouldSupportOnlyDestinationTypeBeingDerived.cs" />
     <Compile Include="MappingOrder.cs" />
@@ -227,26 +385,33 @@
     <Compile Include="Profiles.cs" />
     <Compile Include="Projection\ConstructorTests.cs" />
     <Compile Include="Projection\ExplicitExpansion.cs" />
+    <Compile Include="Projection\ExplicitExpansionAsDataSource.cs" />
     <Compile Include="Projection\ExplicitValues.cs" />
     <Compile Include="Projection\InheritedMaps.cs" />
     <Compile Include="Projection\MapFromTest.cs" />
+    <Compile Include="Projection\MembersToExpand_ExpressionArray.cs" />
     <Compile Include="Projection\NestedAndArraysTests.cs" />
     <Compile Include="Projection\NestedExpressionsMapFromTests.cs" />
     <Compile Include="Projection\NonGenericQueryableTests.cs" />
     <Compile Include="Projection\NullableItemsTests.cs" />
     <Compile Include="Projection\NullSubstitutes.cs" />
     <Compile Include="Projection\ParameterizedQueriesTests.cs" />
+    <Compile Include="Projection\ParameterizedQueriesTestsAsDataSource.cs" />
     <Compile Include="Projection\PrimitiveArraysTest.cs" />
     <Compile Include="Projection\ProjectCollectionEnumerableTest.cs" />
     <Compile Include="Projection\ProjectCollectionListTest.cs" />
     <Compile Include="Projection\ProjectEnumerableToArrayTest.cs" />
     <Compile Include="Projection\ProjectEnumTest.cs" />
+    <Compile Include="Projection\ProjectionTests.cs" />
     <Compile Include="Projection\ProjectTest.cs" />
+    <Compile Include="Projection\GenericsTests.cs" />
     <Compile Include="Projection\ToStringTests.cs" />
+    <Compile Include="Bug\SamePropertyNameOnParentAndChildClasses.cs" />
     <Compile Include="Query\SourceInjectedQuery.cs" />
     <Compile Include="PropertyMapContexts.cs" />
     <Compile Include="Regression.cs" />
     <Compile Include="ReverseMapping.cs" />
+    <Compile Include="SeparateConfiguration.cs" />
     <Compile Include="Should\Should.Core\Assertions\Assert.cs" />
     <Compile Include="Should\Should.Core\Assertions\AssertComparer.cs" />
     <Compile Include="Should\Should.Core\Assertions\AssertEqualityComparer.cs" />
@@ -292,11 +457,10 @@
     <Compile Include="Should\should\DoubleAssertionExtensions.cs" />
     <Compile Include="Should\should\ObjectAssertExtensions.cs" />
     <Compile Include="Should\should\StringAssertionExtensions.cs" />
+    <Compile Include="StaticMapping.cs" />
     <Compile Include="TesterExtensions.cs" />
     <Compile Include="ConfigurationValidation.cs" />
     <Compile Include="Bug\ProjectConstructorParameters.cs" />
-    <Compile Include="Tests\InitialTypes.cs" />
-    <Compile Include="Tests\PropertyMapSpecs.cs" />
     <Compile Include="Tests\MapperTests.cs" />
     <Compile Include="Tests\TypeInfoSpecs.cs" />
     <Compile Include="Tests\TypeMapFactorySpecs.cs" />
@@ -304,7 +468,8 @@
     <Compile Include="UsingEngineInsideMap.cs" />
     <Compile Include="ValueTypes.cs" />
     <Compile Include="Bug\MappingToAReadOnlyCollection.cs" />
-    <Compile Include="WinRTExtensions.cs" />
+    <Compile Include="When_using_ConfigurationExpression_Advanced.cs" />
+    <Compile Include="XpressionMapperTests.cs" />
     <Compile Include="XUnitConventions.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -331,13 +496,13 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AutoMapper.Net4\AutoMapper.Net4.csproj">
-      <Project>{8c955148-fa96-4f0d-880d-abb6770f54e9}</Project>
-      <Name>AutoMapper.Net4</Name>
-    </ProjectReference>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <ItemGroup>
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+    <ProjectReference Include="..\AutoMapper\AutoMapper.csproj">
+      <Project>{35888286-1428-4bf3-bb0c-d8bc092d0a5d}</Project>
+      <Name>AutoMapper</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />

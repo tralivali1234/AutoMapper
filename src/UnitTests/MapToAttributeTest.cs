@@ -1,4 +1,5 @@
 ﻿using AutoMapper.Mappers;
+using AutoMapper.Configuration.Conventions;
 using Should;
 using Xunit;
 
@@ -21,14 +22,13 @@ namespace AutoMapper.UnitTests
             public string Key { get; set; }
         }
 
-        protected override void Because_of()
+        protected override MapperConfiguration Configuration { get; } = new MapperConfiguration(cfg =>
         {
-            Mapper.Initialize(cfg =>
+            cfg.CreateProfile("New Profile", profile =>
             {
-                var profile = cfg.CreateProfile("New Profile");
                 profile.AddConditionalObjectMapper().Where((s, d) => s.Name.Contains(d.Name) || d.Name.Contains(s.Name));
             });
-        }
+        });
 
         [Fact]
         public void Sould_Map_MapToAttribute_To_Property_With_Matching_Name()
@@ -38,7 +38,6 @@ namespace AutoMapper.UnitTests
                 Id = "3",
                 Key = "MyKey"
             };
-
             CategoryDto result = Mapper.Map<CategoryDto>(category);
             result.Id.ShouldEqual("3");
             result.MyValueProperty.ShouldEqual("MyKey");

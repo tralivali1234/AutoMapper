@@ -1,40 +1,67 @@
+using System;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
+using AutoMapper.Execution;
+
 namespace AutoMapper
 {
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Linq.Expressions;
-    using System.Reflection;
+    using static Expression;
 
     public class ConstructorParameterMap
     {
-        public ConstructorParameterMap(ParameterInfo parameter, IMemberGetter[] sourceResolvers, bool canResolve)
+        public ConstructorParameterMap(ParameterInfo parameter, MemberInfo[] sourceMembers, bool canResolve)
         {
             Parameter = parameter;
-            SourceResolvers = sourceResolvers;
+            SourceMembers = sourceMembers;
             CanResolve = canResolve;
         }
 
-        public ParameterInfo Parameter { get; private set; }
+        public ParameterInfo Parameter { get; }
 
-        public IMemberGetter[] SourceResolvers { get; private set; }
+        public MemberInfo[] SourceMembers { get; }
 
         public bool CanResolve { get; set; }
 
-        public Expression GetExpression(Expression instanceParameter)
+        public bool DefaultValue { get; private set; }
+
+        public LambdaExpression CustomExpression { get; set; }
+
+        public LambdaExpression CustomValueResolver { get; set; }
+
+        public Type DestinationType => Parameter.ParameterType;
+
+        public Expression CreateExpression(TypeMapPlanBuilder builder)
         {
-            return SourceResolvers.Aggregate(instanceParameter, (parameter, getter) => Expression.MakeMemberAccess(parameter, getter.MemberInfo));
+            var valueResolverExpression = ResolveSource(builder.Source, builder.Context);
+            var sourceType = valueResolverExpression.Type;
+            var resolvedValue = Variable(sourceType, "resolvedValue");            
+            return Block(new[] { resolvedValue },
+                Assign(resolvedValue, valueResolverExpression),
+                builder.MapExpression(new TypePair(sourceType, DestinationType), resolvedValue));
         }
 
-        public ResolutionResult ResolveValue(ResolutionContext context)
+        private Expression ResolveSource(ParameterExpression sourceParameter, ParameterExpression contextParameter)
         {
-            var result = new ResolutionResult(context);
-
-            return SourceResolvers.Aggregate(result, (current, resolver) => resolver.Resolve(current));
-        }
-
-        public void ResolveUsing(IEnumerable<IMemberGetter> members)
-        {
-            SourceResolvers = members.ToArray();
+            if(CustomExpression != null)
+            {
+                return CustomExpression.ConvertReplaceParameters(sourceParameter).IfNotNull(DestinationType);
+            }
+            if(CustomValueResolver != null)
+            {
+                return CustomValueResolver.ConvertReplaceParameters(sourceParameter, contextParameter);
+            }
+            if(Parameter.IsOptional)
+            {
+                DefaultValue = true;
+                return Constant(Parameter.GetDefaultValue(), Parameter.ParameterType);
+            }
+            return SourceMembers.Aggregate(
+                            (Expression) sourceParameter,
+                            (inner, getter) => getter is MethodInfo
+                                ? Call(getter.IsStatic() ? null : inner, (MethodInfo) getter)
+                                : (Expression) MakeMemberAccess(getter.IsStatic() ? null : inner, getter)
+                      ).IfNotNull(DestinationType);
         }
     }
 }

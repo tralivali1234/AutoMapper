@@ -1,13 +1,17 @@
-﻿namespace AutoMapper
-{
-    using System;
-    using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
+namespace AutoMapper
+{
     /// <summary>
     /// Options for a single map operation
     /// </summary>
     public interface IMappingOperationOptions
     {
+        T CreateInstance<T>();
+
+        Func<Type, object> ServiceCtor { get; }
+
         /// <summary>
         /// Construct services using this callback. Use this for child/nested containers
         /// </summary>
@@ -15,19 +19,9 @@
         void ConstructServicesUsing(Func<Type, object> constructor);
 
         /// <summary>
-        /// Create any missing type maps, if found
-        /// </summary>
-        bool CreateMissingTypeMaps { get; set; }
-
-        /// <summary>
-        /// Add context items to be accessed at map time inside an <see cref="IValueResolver"/> or <see cref="ITypeConverter{TSource, TDestination}"/>
+        /// Add context items to be accessed at map time inside an <see cref="IValueResolver{TSource, TDestination, TMember}"/> or <see cref="ITypeConverter{TSource, TDestination}"/>
         /// </summary>
         IDictionary<string, object> Items { get; }
-
-        /// <summary>
-        /// Disable the cache used to re-use destination instances based on equality
-        /// </summary>
-        bool DisableCache { get; set; }
 
         /// <summary>
         /// Execute a custom function to the source and/or destination types before member mapping
@@ -42,7 +36,7 @@
         void AfterMap(Action<object, object> afterFunction);
     }
 
-    public interface IMappingOperationOptions<TSource, TDestination> : IMappingOperationOptions
+    public interface IMappingOperationOptions<out TSource, out TDestination> : IMappingOperationOptions
     {
         /// <summary>
         /// Execute a custom function to the source and/or destination types before member mapping

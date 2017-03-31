@@ -1,17 +1,29 @@
+using System;
+using System.Linq.Expressions;
+using AutoMapper.Configuration;
+using AutoMapper.Execution;
+
 namespace AutoMapper.Mappers
 {
-    using Internal;
+    using static Expression;
 
     public class NullableSourceMapper : IObjectMapper
     {
-        public object Map(ResolutionContext context, IMappingEngineRunner mapper)
-        {
-            return context.SourceValue ?? mapper.CreateObject(context);
-        }
+        public bool IsMatch(TypePair context) => context.SourceType.IsNullableType();
 
-        public bool IsMatch(ResolutionContext context)
-        {
-            return context.SourceType.IsNullableType() && !context.DestinationType.IsNullableType();
-        }
+        public Expression MapExpression(IConfigurationProvider configurationProvider, ProfileMap profileMap,
+            PropertyMap propertyMap, Expression sourceExpression, Expression destExpression,
+            Expression contextExpression) =>
+            Condition(
+                Property(sourceExpression, sourceExpression.Type.GetDeclaredProperty("HasValue")),
+                TypeMapPlanBuilder.MapExpression(configurationProvider, profileMap,
+                    new TypePair(Nullable.GetUnderlyingType(sourceExpression.Type), destExpression.Type),
+                    Property(sourceExpression, sourceExpression.Type.GetDeclaredProperty("Value")),
+                    contextExpression,
+                    propertyMap,
+                    destExpression
+                ),
+                DelegateFactory.GenerateConstructorExpression(destExpression.Type, profileMap)
+            );
     }
 }

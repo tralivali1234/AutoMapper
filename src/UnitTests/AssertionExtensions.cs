@@ -8,26 +8,24 @@ using Should;
 
 namespace AutoMapper.UnitTests
 {
-    using Internal;
-
     public delegate void ThrowingAction();
 
-	public static class AssertionExtensions
-	{
-		public static void ShouldNotBeThrownBy(this Type exception, Action action)
-		{
-			try
-			{
-				action();
-			}
-			catch (Exception ex)
-			{
-				if (exception.IsInstanceOfType(ex))
-				{
-					throw new AssertException(string.Format("Expected no exception of type {0} to be thrown.", exception), ex);
-				}
-			}
-		}
+    public static class AssertionExtensions
+    {
+        public static void ShouldNotBeThrownBy(this Type exception, Action action)
+        {
+            try
+            {
+                action();
+            }
+            catch (Exception ex)
+            {
+                if (exception.IsInstanceOfType(ex))
+                {
+                    throw new AssertException(string.Format("Expected no exception of type {0} to be thrown.", exception), ex);
+                }
+            }
+        }
 
         public static void ShouldContain(this IEnumerable items, object item)
         {
@@ -55,5 +53,5 @@ namespace AutoMapper.UnitTests
         {
             actual.ShouldNotBeType<TExpectedType>();
         }
-	}
+    }
 }

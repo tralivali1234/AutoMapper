@@ -1,95 +1,42 @@
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using AutoMapper.Configuration;
+using AutoMapper.Mappers;
+using AutoMapper.Mappers.Internal;
+
 namespace AutoMapper.QueryableExtensions.Impl
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Linq.Expressions;
-    using Internal;
-    using System.Reflection;
-#if MONODROID
-    using Extensions = AutoMapper.QueryableExtensions.Extensions;
-#endif
-
     public class EnumerableExpressionBinder : IExpressionBinder
     {
-        public bool IsMatch(PropertyMap propertyMap, TypeMap propertyTypeMap, ExpressionResolutionResult result)
+        public bool IsMatch(PropertyMap propertyMap, TypeMap propertyTypeMap, ExpressionResolutionResult result) =>
+            propertyMap.DestinationPropertyType.IsEnumerableType() && propertyMap.SourceType.IsEnumerableType() &&
+            !(ElementTypeHelper.GetElementType(propertyMap.DestinationPropertyType).IsPrimitive() &&
+              ElementTypeHelper.GetElementType(propertyMap.SourceType).IsPrimitive());
+
+        public MemberAssignment Build(IConfigurationProvider configuration, PropertyMap propertyMap, TypeMap propertyTypeMap, ExpressionRequest request, ExpressionResolutionResult result, IDictionary<ExpressionRequest, int> typePairCount) 
+            => BindEnumerableExpression(configuration, propertyMap, request, result, typePairCount);
+
+        private static MemberAssignment BindEnumerableExpression(IConfigurationProvider configuration, PropertyMap propertyMap, ExpressionRequest request, ExpressionResolutionResult result, IDictionary<ExpressionRequest, int> typePairCount)
         {
-            return propertyMap.DestinationPropertyType.GetInterfaces().Any(t => t.Name == "IEnumerable") &&
-                   propertyMap.DestinationPropertyType != typeof (string);
-        }
+            var destinationListType = ElementTypeHelper.GetElementType(propertyMap.DestinationPropertyType);
+            var sourceListType = ElementTypeHelper.GetElementType(propertyMap.SourceType);
+            var expression = result.ResolutionExpression;
 
-        public MemberAssignment Build(IMappingEngine mappingEngine, PropertyMap propertyMap, TypeMap propertyTypeMap,
-            ExpressionRequest request, ExpressionResolutionResult result, Internal.IDictionary<ExpressionRequest, int> typePairCount)
-        {
-            return BindEnumerableExpression(mappingEngine, propertyMap, request, result, typePairCount);
-        }
-
-        private static MemberAssignment BindEnumerableExpression(IMappingEngine mappingEngine, PropertyMap propertyMap,
-            ExpressionRequest request, ExpressionResolutionResult result, Internal.IDictionary<ExpressionRequest, int> typePairCount)
-        {
-            MemberAssignment bindExpression;
-            Type destinationListType = GetDestinationListTypeFor(propertyMap);
-
-            var sourceListType = result.Type.IsArray ? result.Type.GetElementType() : result.Type.GetGenericArguments().First();
-            var listTypePair = new ExpressionRequest(sourceListType, destinationListType, request.MembersToExpand);
-
-            var selectExpression = result.ResolutionExpression;
             if (sourceListType != destinationListType)
             {
-                var transformedExpression = ((IMappingEngineRunner)mappingEngine).CreateMapExpression(listTypePair, typePairCount);
-                selectExpression = Expression.Call(
-                    typeof (Enumerable),
-                    "Select",
-                    new[] {sourceListType, destinationListType},
-                    result.ResolutionExpression,
-                    transformedExpression);
+                var listTypePair = new ExpressionRequest(sourceListType, destinationListType, request.MembersToExpand, request);
+                var transformedExpression = configuration.ExpressionBuilder.CreateMapExpression(listTypePair, typePairCount);
+                if(transformedExpression == null)
+                {
+                    return null;
+                }
+                expression = Expression.Call(typeof (Enumerable), "Select", new[] {sourceListType, destinationListType}, result.ResolutionExpression, transformedExpression);
             }
 
-            if (typeof (IList<>).MakeGenericType(destinationListType)
-                .IsAssignableFrom(propertyMap.DestinationPropertyType)
-                ||
-                typeof (ICollection<>).MakeGenericType(destinationListType)
-                    .IsAssignableFrom(propertyMap.DestinationPropertyType))
-            {
-                // Call .ToList() on IEnumerable
-                var toListCallExpression = GetToListCallExpression(propertyMap, destinationListType, selectExpression);
+            expression = Expression.Call(typeof(Enumerable), propertyMap.DestinationPropertyType.IsArray ? "ToArray" : "ToList", new[] { destinationListType }, expression);
 
-                bindExpression = Expression.Bind(propertyMap.DestinationProperty.MemberInfo, toListCallExpression);
-            }
-            else if (propertyMap.DestinationPropertyType.IsArray)
-            {
-                // Call .ToArray() on IEnumerable
-                MethodCallExpression toArrayCallExpression = Expression.Call(
-                    typeof (Enumerable),
-                    "ToArray",
-                    new[] {destinationListType},
-                    selectExpression);
-                bindExpression = Expression.Bind(propertyMap.DestinationProperty.MemberInfo, toArrayCallExpression);
-            }
-            else
-            {
-                // destination type implements ienumerable, but is not an ilist. allow deferred enumeration
-                bindExpression = Expression.Bind(propertyMap.DestinationProperty.MemberInfo, selectExpression);
-            }
-            return bindExpression;
-        }
-
-        private static Type GetDestinationListTypeFor(PropertyMap propertyMap)
-        {
-            var destinationListType = propertyMap.DestinationPropertyType.IsArray 
-                ? propertyMap.DestinationPropertyType.GetElementType() 
-                : propertyMap.DestinationPropertyType.GetGenericArguments().First();
-            return destinationListType;
-        }
-
-        private static MethodCallExpression GetToListCallExpression(PropertyMap propertyMap, Type destinationListType,
-            Expression selectExpression)
-        {
-            return Expression.Call(
-                typeof (Enumerable),
-                propertyMap.DestinationPropertyType.IsArray ? "ToArray" : "ToList",
-                new[] {destinationListType},
-                selectExpression);
+            return Expression.Bind(propertyMap.DestinationProperty, expression);
         }
     }
 }

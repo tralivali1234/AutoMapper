@@ -1,5 +1,10 @@
-<img src="https://s3.amazonaws.com/automapper/logo.png" alt="AutoMapper">
+<img src="https://s3.amazonaws.com/automapper/logo.png" alt="AutoMapper"> 
 ================================
+
+[![Build status](https://ci.appveyor.com/api/projects/status/q261l3sbokafmx1o/branch/develop?svg=true)](https://ci.appveyor.com/project/jbogard/automapper/branch/develop)
+[![NuGet](https://img.shields.io/nuget/dt/AutoMapper.svg)](https://www.nuget.org/packages/AutoMapper/)
+[![NuGet](http://img.shields.io/nuget/v/AutoMapper.svg)](https://www.nuget.org/packages/AutoMapper/)
+[![MyGet CI](https://img.shields.io/myget/automapperdev/v/AutoMapper.svg)](http://myget.org/gallery/automapperdev)
 
 What is AutoMapper?
 --------------------------------
@@ -15,4 +20,10 @@ First, [install NuGet](http://docs.nuget.org/docs/start-here/installing-nuget). 
 
     PM> Install-Package AutoMapper
 
-AutoMapper is Copyright &copy; 2008-2012 [Jimmy Bogard](http://jimmybogard.lostechies.com) and other contributors under the [MIT license](LICENSE.txt).
+Do you have an issue?
+--------------------------------
+First check if it's already fixed by trying the [MyGet build](https://github.com/AutoMapper/AutoMapper/wiki/The-MyGet-build).
+
+You might want to know exactly what [your mapping does](https://github.com/AutoMapper/AutoMapper/wiki/Understanding-your-mapping) at runtime.
+
+AutoMapper is Copyright &copy; 2008-2016 [Jimmy Bogard](http://jimmybogard.lostechies.com) and other contributors under the [MIT license](LICENSE.txt).

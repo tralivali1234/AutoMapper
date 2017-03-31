@@ -3,24 +3,17 @@ using Should;
 
 namespace AutoMapper.UnitTests.Bug
 {
-    public class SettersInBaseClasses
+    public class SettersInBaseClasses : AutoMapperSpecBase
     {
-        public SettersInBaseClasses()
+        protected override MapperConfiguration Configuration { get; } = new MapperConfiguration(cfg =>
         {
-            SetUp();
-        }
-
-        public void SetUp(){
-            Mapper.Initialize(cfg =>
-            {
-                cfg.CreateMap<Source, GrandGrandChild>();
-                cfg.CreateMap<Source, GrandChild>();
-                cfg.CreateMap<Source, Child>();
-                cfg.CreateMap<Source, GrandGrandChildPrivate>();
-                cfg.CreateMap<Source, GrandChildPrivate>();
-                cfg.CreateMap<Source, ChildPrivate>();
-            });
-        }
+            cfg.CreateMap<Source, GrandGrandChild>();
+            cfg.CreateMap<Source, GrandChild>();
+            cfg.CreateMap<Source, Child>();
+            cfg.CreateMap<Source, GrandGrandChildPrivate>();
+            cfg.CreateMap<Source, GrandChildPrivate>();
+            cfg.CreateMap<Source, ChildPrivate>();
+        });
 
         [Fact]
         public void PublicSetterInParentWorks()
@@ -50,21 +43,7 @@ namespace AutoMapper.UnitTests.Bug
             target.ChildProperty.ShouldEqual(source.ChildProperty);
         }
 
-#if SILVERLIGHT
-        [Fact(Skip = "Not supported in Silverlight 4")]
-#else
         [Fact]
-#endif
-        public void HasValidConfiguration()
-        {
-            Mapper.AssertConfigurationIsValid();
-        }
-
-#if SILVERLIGHT
-        [Fact(Skip = "Not supported in Silverlight 4")]
-#else
-        [Fact]
-#endif
         public void PrivateSetterInParentWorks()
         {
             var source = new Source {ParentProperty = "ParentProperty", ChildProperty = 1};
@@ -73,11 +52,7 @@ namespace AutoMapper.UnitTests.Bug
             target.ChildProperty.ShouldEqual(source.ChildProperty);
         }
 
-#if SILVERLIGHT
-        [Fact(Skip = "Not supported in Silverlight 4")]
-#else
         [Fact]
-#endif
         public void PrivateSetterInGrandparentWorks()
         {
             var source = new Source {ParentProperty = "ParentProperty", ChildProperty = 1};
@@ -86,11 +61,7 @@ namespace AutoMapper.UnitTests.Bug
             target.ChildProperty.ShouldEqual(source.ChildProperty);
         }
 
-#if SILVERLIGHT
-        [Fact(Skip = "Not supported in Silverlight 4")]
-#else
         [Fact]
-#endif
         public void PrivateSetterInGrandGrandparentWorks()
         {
             var source = new Source {ParentProperty = "ParentProperty", ChildProperty = 1};

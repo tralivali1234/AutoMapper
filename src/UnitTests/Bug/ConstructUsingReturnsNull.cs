@@ -15,19 +15,16 @@ namespace AutoMapper.UnitTests.Bug
             public int Number { get; set; }
         }
 
-        protected override void Establish_context()
+        protected override MapperConfiguration Configuration { get; } = new MapperConfiguration(cfg =>
         {
-            Mapper.Initialize(cfg =>
-            {
-                cfg.CreateMap<Source, Destination>().ConstructUsing((Source source)=>null);
-            });
-        }
+            cfg.CreateMap<Source, Destination>().ConstructUsing((Source source) => null);
+        });
 
         [Fact]
         public void Should_throw_when_construct_using_returns_null()
         {
             new Action(() => Mapper.Map<Source, Destination>(new Source()))
-                .ShouldThrow<AutoMapperMappingException>(ex=>ex.InnerException.ShouldBeType<InvalidOperationException>());
+                .ShouldThrow<AutoMapperMappingException>(ex=>ex.InnerException.ShouldBeType<NullReferenceException>());
         }
     }
 }

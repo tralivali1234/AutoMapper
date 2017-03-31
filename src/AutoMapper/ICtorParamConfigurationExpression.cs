@@ -1,10 +1,10 @@
-﻿namespace AutoMapper
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Linq.Expressions;
-    using Internal;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
 
+namespace AutoMapper
+{
     public interface ICtorParamConfigurationExpression<TSource>
     {
         /// <summary>
@@ -13,38 +13,63 @@
         /// <typeparam name="TMember">Member type</typeparam>
         /// <param name="sourceMember">Member expression</param>
         void MapFrom<TMember>(Expression<Func<TSource, TMember>> sourceMember);
+
+        /// <summary>
+        /// Map constructor parameter from custom func
+        /// </summary>
+        /// <param name="resolver">Custom func</param>
+        void ResolveUsing<TMember>(Func<TSource, TMember> resolver);
+
+        /// <summary>
+        /// Map constructor parameter from custom func that has access to <see cref="ResolutionContext"/>
+        /// </summary>
+        /// <param name="resolver">Custom func</param>
+        void ResolveUsing<TMember>(Func<TSource, ResolutionContext, TMember> resolver);
     }
 
     public class CtorParamConfigurationExpression<TSource> : ICtorParamConfigurationExpression<TSource>
     {
-        private readonly ConstructorParameterMap _ctorParamMap;
+        private readonly string _ctorParamName;
+        private readonly List<Action<ConstructorParameterMap>> _ctorParamActions = new List<Action<ConstructorParameterMap>>();
 
-        public CtorParamConfigurationExpression(ConstructorParameterMap ctorParamMap)
-        {
-            _ctorParamMap = ctorParamMap;
-        }
+        public CtorParamConfigurationExpression(string ctorParamName) => _ctorParamName = ctorParamName;
 
         public void MapFrom<TMember>(Expression<Func<TSource, TMember>> sourceMember)
         {
-            var visitor = new MemberInfoFinderVisitor();
-
-            visitor.Visit(sourceMember);
-
-            _ctorParamMap.ResolveUsing(visitor.Members);
+            _ctorParamActions.Add(cpm => cpm.CustomExpression = sourceMember);
         }
 
-        private class MemberInfoFinderVisitor : ExpressionVisitor
+        public void ResolveUsing<TMember>(Func<TSource, TMember> resolver)
         {
-            private readonly List<IMemberGetter> _members = new List<IMemberGetter>();
+            Expression<Func<TSource, ResolutionContext, TMember>> resolverExpression = (src, ctxt) => resolver(src);
+            _ctorParamActions.Add(cpm => cpm.CustomValueResolver = resolverExpression);
+        }
 
-            protected override Expression VisitMember(MemberExpression node)
+        public void ResolveUsing<TMember>(Func<TSource, ResolutionContext, TMember> resolver)
+        {
+            Expression<Func<TSource, ResolutionContext, TMember>> resolverExpression = (src, ctxt) => resolver(src, ctxt);
+            _ctorParamActions.Add(cpm => cpm.CustomValueResolver = resolverExpression);
+        }
+
+        public void Configure(TypeMap typeMap)
+        {
+            var ctorParams = typeMap.ConstructorMap?.CtorParams;
+            if (ctorParams == null)
             {
-                _members.Add(node.Member.ToMemberGetter());
-
-                return base.VisitMember(node);
+                throw new AutoMapperConfigurationException($"The type {typeMap.Types.DestinationType.Name} does not have a constructor.\n{typeMap.Types.DestinationType.FullName}");
             }
 
-            public IEnumerable<IMemberGetter> Members => _members;
+            var parameter = ctorParams.SingleOrDefault(p => p.Parameter.Name == _ctorParamName);
+            if (parameter == null)
+            {
+                throw new AutoMapperConfigurationException($"{typeMap.Types.DestinationType.Name} does not have a constructor with a parameter named '{_ctorParamName}'.\n{typeMap.Types.DestinationType.FullName}");
+            }
+            parameter.CanResolve = true;
+
+            foreach (var action in _ctorParamActions)
+            {
+                action(parameter);
+            }
         }
     }
 }

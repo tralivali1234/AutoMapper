@@ -1,64 +1,73 @@
-﻿namespace AutoMapper
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
+using AutoMapper.Execution;
+using AutoMapper.QueryableExtensions;
+using AutoMapper.QueryableExtensions.Impl;
+
+namespace AutoMapper
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Linq.Expressions;
-    using System.Reflection;
-    using Internal;
+    using static Expression;
 
     public class ConstructorMap
     {
-        private static readonly DelegateFactory DelegateFactory = new DelegateFactory();
-        private readonly ILazy<LateBoundParamsCtor> _runtimeCtor;
-        public ConstructorInfo Ctor { get; private set; }
-        public IEnumerable<ConstructorParameterMap> CtorParams { get; }
+        private readonly IList<ConstructorParameterMap> _ctorParams = new List<ConstructorParameterMap>();
 
-        public ConstructorMap(ConstructorInfo ctor, IEnumerable<ConstructorParameterMap> ctorParams)
+        public ConstructorInfo Ctor { get; }
+        public TypeMap TypeMap { get; }
+        internal IEnumerable<ConstructorParameterMap> CtorParams => _ctorParams;
+
+        public ConstructorMap(ConstructorInfo ctor, TypeMap typeMap)
         {
             Ctor = ctor;
-            CtorParams = ctorParams;
-
-            _runtimeCtor = LazyFactory.Create(() => DelegateFactory.CreateCtor(ctor, CtorParams));
+            TypeMap = typeMap;
         }
+
+        private static readonly IExpressionResultConverter[] ExpressionResultConverters =
+        {
+            new MemberResolverExpressionResultConverter(),
+            new MemberGetterExpressionResultConverter()
+        };
+
+        public bool CanResolve => CtorParams.All(param => param.CanResolve);
 
         public Expression NewExpression(Expression instanceParameter)
         {
-            var parameters = CtorParams.Select(map => map.GetExpression(instanceParameter));
-            return Expression.New(Ctor, parameters);
+            var parameters = CtorParams.Select(map =>
+            {
+                var result = new ExpressionResolutionResult(instanceParameter, Ctor.DeclaringType);
+
+                var matchingExpressionConverter =
+                    ExpressionResultConverters.FirstOrDefault(c => c.CanGetExpressionResolutionResult(result, map));
+
+                result = matchingExpressionConverter?.GetExpressionResolutionResult(result, map) 
+                    ?? throw new Exception("Can't resolve this to Queryable Expression");
+
+                return result;
+            });
+            return New(Ctor, parameters.Select(p => p.ResolutionExpression));
         }
 
-        public object ResolveValue(ResolutionContext context, IMappingEngineRunner mappingEngine)
+        public Expression BuildExpression(TypeMapPlanBuilder builder)
         {
-            var ctorArgs = new List<object>();
+            if (!CanResolve)
+                return null;
 
-            foreach (var map in CtorParams)
-            {
-                var result = map.ResolveValue(context);
+            var ctorArgs = CtorParams.Select(p => p.CreateExpression(builder));
 
-                var sourceType = result.Type;
-                var destinationType = map.Parameter.ParameterType;
+            ctorArgs =
+                ctorArgs.Zip(Ctor.GetParameters(),
+                    (exp, pi) => exp.Type == pi.ParameterType ? exp : Convert(exp, pi.ParameterType))
+                    .ToArray();
+            var newExpr = New(Ctor, ctorArgs);
+            return newExpr;
+        }
 
-                var typeMap = mappingEngine.ConfigurationProvider.ResolveTypeMap(result, destinationType);
-
-                Type targetSourceType = typeMap != null ? typeMap.SourceType : sourceType;
-
-                var newContext = context.CreateTypeContext(typeMap, result.Value, null, targetSourceType,
-                    destinationType);
-
-                if (typeMap == null && map.Parameter.IsOptional)
-                {
-                    object value = map.Parameter.DefaultValue;
-                    ctorArgs.Add(value);
-                }
-                else
-                {
-                    var value = mappingEngine.Map(newContext);
-                    ctorArgs.Add(value);
-                }
-            }
-
-            return _runtimeCtor.Value(ctorArgs.ToArray());
+        public void AddParameter(ParameterInfo parameter, MemberInfo[] resolvers, bool canResolve)
+        {
+            _ctorParams.Add(new ConstructorParameterMap(parameter, resolvers, canResolve));
         }
     }
 }

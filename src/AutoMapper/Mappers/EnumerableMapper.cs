@@ -1,37 +1,32 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+using AutoMapper.Configuration;
+using AutoMapper.Mappers.Internal;
+
 namespace AutoMapper.Mappers
 {
-    using System;
-    using System.Collections;
-    using System.Reflection;
-    using Internal;
+    using static Expression;
+    using static CollectionMapperExpressionFactory;
 
-    public class EnumerableMapper : EnumerableMapperBase<IList>
+    public class EnumerableMapper : IObjectMapper
     {
-        public override bool IsMatch(ResolutionContext context)
+        public bool IsMatch(TypePair context) => (context.DestinationType.IsInterface() && context.DestinationType.IsEnumerableType() ||
+                                                  context.DestinationType.IsListType())
+                                                 && context.SourceType.IsEnumerableType();
+
+        public Expression MapExpression(IConfigurationProvider configurationProvider, ProfileMap profileMap, PropertyMap propertyMap, Expression sourceExpression, Expression destExpression, Expression contextExpression)
         {
-            // destination type must be IEnumerable interface or a class implementing at least IList 
-            return context.SourceType.IsEnumerableType() && (context.DestinationType.IsListType() || DestinationIListTypedAsIEnumerable(context));
+            if(destExpression.Type.IsInterface())
+            {
+                var listType = typeof(List<>).MakeGenericType(ElementTypeHelper.GetElementType(destExpression.Type));
+                destExpression = Default(listType);
+            }
+            return MapCollectionExpression(configurationProvider, profileMap, propertyMap, sourceExpression,
+                destExpression, contextExpression, IfEditableList, typeof(List<>), MapItemExpr);
         }
 
-        private static bool DestinationIListTypedAsIEnumerable(ResolutionContext context)
-        {
-            return context.DestinationType.IsInterface() && context.DestinationType.IsEnumerableType() && 
-                        (context.DestinationValue == null || context.DestinationValue is IList);
-        }
-
-        protected override void SetElementValue(IList destination, object mappedValue, int index)
-        {
-            destination.Add(mappedValue);
-        }
-
-        protected override void ClearEnumerable(IList enumerable)
-        {
-            enumerable.Clear();
-        }
-
-        protected override IList CreateDestinationObjectBase(Type destElementType, int sourceLength)
-        {
-            return ObjectCreator.CreateList(destElementType);
-        }
+        private static Expression IfEditableList(Expression dest) => And(TypeIs(dest, typeof(IList)), Not(TypeIs(dest, typeof(Array))));
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Dynamic;
+using System.Linq;
 using Should;
 using Should.Core.Assertions;
 using Xunit;
@@ -10,6 +11,8 @@ namespace AutoMapper.UnitTests.Mappers.Dynamic
     {
         public string Foo { get; set; }
         public string Bar { get; set; }
+        internal string Jack { get; set; }
+        public int[] Data { get; set; }
     }
 
     public class DynamicDictionary : DynamicObject
@@ -26,81 +29,168 @@ namespace AutoMapper.UnitTests.Mappers.Dynamic
             dictionary[binder.Name] = value;
             return true;
         }
+
+        public int Count => dictionary.Count;
     }
 
-    public class When_mapping_to_dynamic : NonValidatingSpecBase
+    public class When_mapping_to_dynamic_from_getter_only_property
     {
-        dynamic _destination;
-
-        protected override void Because_of()
+        class Source
         {
-            _destination = Mapper.Map<DynamicDictionary>(new Destination { Foo = "Foo", Bar = "Bar" });
+            public Source()
+            {
+                Value = 24;
+            }
+
+            public int Value { get; }
         }
 
         [Fact]
         public void Should_map_source_properties()
         {
-            Assert.Equal("Foo", _destination.Foo);
-            Assert.Equal("Bar", _destination.Bar);
+            var config = new MapperConfiguration(cfg => { });
+            dynamic destination = config.CreateMapper().Map<DynamicDictionary>(new Source());
+            ((int)destination.Count).ShouldEqual(1);
+            Assert.Equal(24, destination.Value);
         }
     }
 
-    public class When_mapping_from_dynamic : NonValidatingSpecBase
+    public class When_mapping_to_dynamic
+    {
+        dynamic _destination;
+
+        [Fact]
+        public void Should_map_source_properties()
+        {
+            var config = new MapperConfiguration(cfg => { });
+            var data = new[] { 1, 2, 3 };
+            _destination = config.CreateMapper().Map<DynamicDictionary>(new Destination { Foo = "Foo", Bar = "Bar", Data = data });
+            ((int)_destination.Count).ShouldEqual(3);
+            Assert.Equal("Foo", _destination.Foo);
+            Assert.Equal("Bar", _destination.Bar);
+            ((int[])_destination.Data).SequenceEqual(data).ShouldBeTrue();
+        }
+    }
+
+    public class When_mapping_from_dynamic
     {
         Destination _destination;
 
-        protected override void Because_of()
+        [Fact]
+        public void Should_map_destination_properties()
         {
             dynamic source = new DynamicDictionary();
             source.Foo = "Foo";
             source.Bar = "Bar";
-            _destination = Mapper.Map<Destination>(source);
+            source.Jack = "Jack";
+            var config = new MapperConfiguration(cfg => { });
+            _destination = config.CreateMapper().Map<Destination>(source);
+            _destination.Foo.ShouldEqual("Foo");
+            _destination.Bar.ShouldEqual("Bar");
+            _destination.Jack.ShouldBeNull();
+        }
+    }
+
+    public class When_mapping_struct_from_dynamic
+    {
+        Destination _destination;
+
+        struct Destination
+        {
+            public string Foo { get; set; }
+            public string Bar { get; set; }
+            internal string Jack { get; set; }
         }
 
         [Fact]
         public void Should_map_destination_properties()
         {
+            dynamic source = new DynamicDictionary();
+            source.Foo = "Foo";
+            source.Bar = "Bar";
+            source.Jack = "Jack";
+            var config = new MapperConfiguration(cfg => { });
+            _destination = config.CreateMapper().Map<Destination>(source);
             _destination.Foo.ShouldEqual("Foo");
             _destination.Bar.ShouldEqual("Bar");
+            _destination.Jack.ShouldBeNull();
         }
     }
 
-    public class When_mapping_from_dynamic_with_missing_property : NonValidatingSpecBase
+    public class When_mapping_from_dynamic_with_missing_property
     {
         Destination _destination;
-
-        protected override void Because_of()
-        {
-            dynamic source = new DynamicDictionary();
-            source.Foo = "Foo";
-            _destination = Mapper.Map<Destination>(source);
-        }
 
         [Fact]
         public void Should_map_existing_properties()
         {
+            dynamic source = new DynamicDictionary();
+            source.Foo = "Foo";
+            var config = new MapperConfiguration(cfg => { });
+            _destination = config.CreateMapper().Map<Destination>(source);
             _destination.Foo.ShouldEqual("Foo");
             _destination.Bar.ShouldBeNull();
         }
     }
 
-    public class When_mapping_from_dynamic_to_dynamic: NonValidatingSpecBase
+    public class When_mapping_from_dynamic_to_dynamic
     {
         dynamic _destination;
-
-        protected override void Because_of()
-        {
-            dynamic source = new DynamicDictionary();
-            source.Foo = "Foo";
-            source.Bar = "Bar";
-            _destination = Mapper.Map<DynamicDictionary>(source);
-        }
 
         [Fact]
         public void Should_map()
         {
+            dynamic source = new DynamicDictionary();
+            source.Foo = "Foo";
+            source.Bar = "Bar";
+            var config = new MapperConfiguration(cfg => { });
+            _destination = config.CreateMapper().Map<DynamicDictionary>(source);
             Assert.Equal("Foo", _destination.Foo);
             Assert.Equal("Bar", _destination.Bar);
+        }
+    }
+
+    public class When_mapping_from_dynamic_to_nullable
+    {
+        class DestinationWithNullable
+        {
+            public string StringValue { get; set; }
+            public int? NullIntValue { get; set; }
+        }
+
+        [Fact]
+        public void Should_map_with_non_null_source()
+        {
+            dynamic source = new DynamicDictionary();
+            source.StringValue = "Test";
+            source.NullIntValue = 5;
+            var config = new MapperConfiguration(cfg => { });
+            var destination = config.CreateMapper().Map<DestinationWithNullable>(source);
+            Assert.Equal("Test", destination.StringValue);
+            Assert.Equal(5, destination.NullIntValue);
+        }
+
+        [Fact]
+        public void Should_map_with_source_missing()
+        {
+            dynamic source = new DynamicDictionary();
+            source.StringValue = "Test";
+            var config = new MapperConfiguration(cfg => { });
+            var destination = config.CreateMapper().Map<DestinationWithNullable>(source);
+            Assert.Equal("Test", destination.StringValue);
+            Assert.Equal((int?)null, destination.NullIntValue);
+        }
+
+        [Fact]
+        public void Should_map_with_null_source()
+        {
+            dynamic source = new DynamicDictionary();
+            source.StringValue = "Test";
+            source.NullIntValue = null;
+            var config = new MapperConfiguration(cfg => { });
+            var destination = config.CreateMapper().Map<DestinationWithNullable>(source);
+            Assert.Equal("Test", destination.StringValue);
+            Assert.Equal((int?)null, destination.NullIntValue);
         }
     }
 }

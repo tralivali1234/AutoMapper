@@ -1,51 +1,48 @@
+using System;
+using System.Collections.Generic;
+
 namespace AutoMapper
 {
-    using System;
-    using System.Collections.Generic;
+    using StringDictionary = Dictionary<string, object>;
 
-    public class MappingOperationOptions<TSource, TDestination> : MappingOperationOptions,
-        IMappingOperationOptions<TSource, TDestination>
+    public class MappingOperationOptions<TSource, TDestination> : IMappingOperationOptions<TSource, TDestination>
     {
-        public void BeforeMap(Action<TSource, TDestination> beforeFunction)
-        {
-            BeforeMapAction = (src, dest) => beforeFunction((TSource) src, (TDestination) dest);
-        }
+        private StringDictionary _items;
+        private static readonly Action<TSource, TDestination> Empty = (_, __) => { };
 
-        public void AfterMap(Action<TSource, TDestination> afterFunction)
+        public MappingOperationOptions(Func<Type, object> serviceCtor)
         {
-            AfterMapAction = (src, dest) => afterFunction((TSource) src, (TDestination) dest);
-        }
-    }
-
-    public class MappingOperationOptions : IMappingOperationOptions
-    {
-        public MappingOperationOptions()
-        {
-            Items = new Dictionary<string, object>();
-            BeforeMapAction = (src, dest) => { };
-            AfterMapAction = (src, dest) => { };
+            BeforeMapAction = AfterMapAction = Empty;
+            ServiceCtor = serviceCtor;
         }
 
         public Func<Type, object> ServiceCtor { get; private set; }
-        public bool CreateMissingTypeMaps { get; set; }
-        public IDictionary<string, object> Items { get; }
-        public bool DisableCache { get; set; }
-        public Action<object, object> BeforeMapAction { get; protected set; }
-        public Action<object, object> AfterMapAction { get; protected set; }
+        public IDictionary<string, object> Items => _items ?? (_items = new StringDictionary());
+        public Action<TSource, TDestination> BeforeMapAction { get; protected set; }
+        public Action<TSource, TDestination> AfterMapAction { get; protected set; }
 
-        public void BeforeMap(Action<object, object> beforeFunction)
+        public void BeforeMap(Action<TSource, TDestination> beforeFunction) => BeforeMapAction = beforeFunction;
+
+        public void AfterMap(Action<TSource, TDestination> afterFunction) => AfterMapAction = afterFunction;
+
+        public T CreateInstance<T>()
         {
-            BeforeMapAction = beforeFunction;
+            var service = ServiceCtor(typeof(T));
+            if(service == null)
+            {
+                throw new AutoMapperMappingException("Cannot create an instance of type " + typeof(T));
+            }
+            return (T) service;
         }
 
-        public void AfterMap(Action<object, object> afterFunction)
+        public void ConstructServicesUsing(Func<Type, object> constructor)
         {
-            AfterMapAction = afterFunction;
+            var ctor = ServiceCtor;
+            ServiceCtor = t => constructor(t) ?? ctor(t);
         }
 
-        void IMappingOperationOptions.ConstructServicesUsing(Func<Type, object> constructor)
-        {
-            ServiceCtor = constructor;
-        }
+        void IMappingOperationOptions.BeforeMap(Action<object, object> beforeFunction) => BeforeMapAction = (s, d) => beforeFunction(s, d);
+
+        void IMappingOperationOptions.AfterMap(Action<object, object> afterFunction) => AfterMapAction = (s, d) => afterFunction(s, d);
     }
 }

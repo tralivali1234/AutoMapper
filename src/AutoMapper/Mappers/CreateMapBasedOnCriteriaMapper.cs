@@ -5,38 +5,20 @@ using System.Linq;
 
 namespace AutoMapper.Mappers
 {
-    public interface IConditionalObjectMapper : IObjectMapper
+    public interface IConditionalObjectMapper
     {
-        ICollection<Func<ResolutionContext, bool>> Conventions { get; }
+        ICollection<Func<TypePair, bool>> Conventions { get; }
+        bool IsMatch(TypePair context);
     }
 
     public class ConditionalObjectMapper : IConditionalObjectMapper
     {
-        private readonly string _profileName;
-
-        public ConditionalObjectMapper(string profileName)
+        public bool IsMatch(TypePair typePair)
         {
-            _profileName = profileName;
+            return Conventions.All(c => c(typePair));
         }
 
-        public object Map(ResolutionContext context, IMappingEngineRunner mapper)
-        {
-            var contextTypePair = new TypePair(context.SourceType, context.DestinationType);
-            Func<TypePair, IObjectMapper> missFunc = tp => context.Engine.ConfigurationProvider.GetMappers().FirstOrDefault(m => m.IsMatch(context));
-            var typeMap = mapper.ConfigurationProvider.CreateTypeMap(context.SourceType, context.DestinationType, _profileName);
-
-            context = context.CreateTypeContext(typeMap, context.SourceValue, context.DestinationValue, context.SourceType, context.DestinationType);
-
-            var map = (context.Engine as MappingEngine)._objectMapperCache.GetOrAdd(contextTypePair, missFunc);
-            return map.Map(context, mapper);
-        }
-
-        public bool IsMatch(ResolutionContext context)
-        {
-            return Conventions.All(c => c(context));
-        }
-
-        public ICollection<Func<ResolutionContext, bool>> Conventions { get; } = new Collection<Func<ResolutionContext, bool>>();
+        public ICollection<Func<TypePair, bool>> Conventions { get; } = new Collection<Func<TypePair, bool>>();
     }
 
     public static class ConventionGeneratorExtensions
